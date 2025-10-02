@@ -1,0 +1,13 @@
+o<!DOCTYPE html>
+<html>
+<head><title>My AWS Demo</title></head>
+<body>
+<h1>Welcome to My EC2 Instance!</h1>
+<p>Instance Public IP: <span id="ip">Loading...</span></p>
+<script>
+  fetch('http://169.254.169.254/latest/meta-data/public-ipv4')
+    .then(r => r.text())
+    .then(ip => document.getElementById('ip').innerText = ip);
+</script>
+</body>
+</html>
