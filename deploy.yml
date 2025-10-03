@@ -1,0 +1,45 @@
+---
+- name: Deploy Web Server
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Update packages
+      dnf:
+        name: '*'
+        state: latest
+
+    - name: Install NGINX
+      dnf:
+        name: nginx
+        state: present
+
+    - name: Start and enable NGINX
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Fetch public IP from AWS metadata
+      shell: curl -s http://169.254.169.254/latest/meta-data/public-ipv4
+      register: public_ip
+      changed_when: false
+
+    - name: Deploy custom index.html with public IP
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html><head><title>My AWS Demo</title></head>
+          <body>
+          <h1>Welcome to My EC2 Instance!</h1>
+          <p>Instance Public IP: <strong>{{ public_ip.stdout }}</strong></p>
+          </body></html>
+        dest: /usr/share/nginx/html/index.html
+        owner: nginx
+        group: nginx
+      notify: restart nginx
+
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
